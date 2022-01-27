@@ -1,0 +1,67 @@
+- name: create directories
+  file:
+    path: /etc/ipa
+    state: directory
+    owner: root
+    group: wheel
+    mode: '0644'
+
+- name: set hostname with scutil
+  shell:
+    cmd: "/usr/sbin/scutil --set HostName {{ ansible_hostname }}.atmos.ucla.edu"
+
+- name: copy krb5 files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/
+    owner: root
+    group: wheel
+    mode: '0600'
+    backup: yes
+  with_items:
+    - krb5.conf
+
+- name: copy keytab from home
+  copy:
+    src: /Users/atmosadmin/krb5.keytab.new
+    dest: /etc/krb5.keytab
+    owner: root
+    group: wheel
+    mode: '0600'
+    remote_src: yes
+    
+- name: copy cert files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/ipa/
+    owner: root
+    group: wheel
+    mode: '0644'
+    backup: yes
+  with_items:
+    - ca.crt
+    - AOSODCA.cer 
+
+- name: copy updated pam.d files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/pam.d/
+    owner: root
+    group: wheel
+    mode: '0644'
+    backup: yes
+  with_items:
+    - authorization
+    - screensaver
+    - passwd
+
+- name: add trusted cert
+  shell:
+    cmd: "/usr/bin/security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /etc/ipa/ca.crt"
+
+- name: copy od folder
+  copy:
+    src: /home/atmosadmin/ansiblize-aos/roles/macsetup/files/OpenDirectory/
+    dest: /Library/Preferences/OpenDirectory
+    owner: root
+    group: wheel

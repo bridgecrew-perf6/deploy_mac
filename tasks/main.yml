@@ -1,0 +1,29 @@
+- name: Check if brew is installed
+  stat:
+    path: /usr/local/bin/brew
+  register: brew_exists
+
+- name: install brew if not installed
+  import_tasks: brew.yml
+  when: brew_exists.stat.exists == False
+
+- name: check for matlab install
+  stat:
+    path: /Applications/MATLAB_R2018b.app
+  register: ml18_exists
+ 
+- name: check for matlab2020 install
+  stat:
+    path: /Applications/MATLAB_R2020b.app
+  register: ml20_exists
+
+- name: install matlab
+  import_tasks: matlab.yml
+  become: yes
+  become_method: sudo
+  when: (ml18_exists.stat.exists == False) and (ml20_exists.stat.exists == False)
+
+- name: copy ldap config plist files
+  import_tasks: auth.yml
+  become: yes
+  become_method: sudo

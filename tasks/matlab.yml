@@ -1,0 +1,35 @@
+- name: create directory for nfs mount
+  file:
+    path: /tmp/install
+    state: directory
+    mode: '0755'
+
+- name: nfs mount
+  mount:
+    src: 128.97.58.31:/exports/install
+    path: /tmp/install
+    state: mounted
+    fstype: nfs
+  
+- name: copy installer_input.txt file
+  copy:
+    src: installer_input.txt
+    dest: /tmp/installer_input.txt
+    mode: '0755'
+
+- name: copy license file
+  copy:
+    src: license.dat
+    dest: /tmp/license.dat
+    mode: '0755'
+
+- name: run installer
+  shell:
+    cmd: '/tmp/install/MATLAB/R2020b/install -inputFile /tmp/installer_input.txt'
+
+- name: unmount nfs
+  mount:
+    src: 128.97.58.31:/exports/install
+    path: /tmp/install
+    state: unmounted
+    fstype: nfs

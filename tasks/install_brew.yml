@@ -1,0 +1,21 @@
+- name: get brew install script
+  uri:
+    url: https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
+    dest: /tmp/brew.sh
+    mode: '0755'
+
+- name: run installer script
+  shell:
+    commmand: '/tmp/brew.sh'
+
+- name: check for  google-chrome
+  stat:
+    path: '/Applications/Google\ Chrome.app'
+  register: chrome_exists
+
+- name: install google-chrome
+  shell:
+    command: '/usr/local/bin/brew install google-chrome'
+   when: chrome_exists.stat.exists == False
+
+#add firefox install

@@ -4,7 +4,7 @@
   register: brew_exists
 
 - name: install brew if not installed
-  import_tasks: brew.yml
+  import_tasks: install_brew.yml
   when: brew_exists.stat.exists == False
 
 - name: check for matlab install
@@ -18,7 +18,7 @@
   register: ml20_exists
 
 - name: install matlab
-  import_tasks: matlab.yml
+  import_tasks: install_matlab.yml
   become: yes
   become_method: sudo
   when: (ml18_exists.stat.exists == False) and (ml20_exists.stat.exists == False)

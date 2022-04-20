@@ -23,7 +23,12 @@
   become_method: sudo
   when: (ml18_exists.stat.exists == False) and (ml20_exists.stat.exists == False)
 
-- name: copy ldap config plist files
-  import_tasks: auth.yml
+  #- name: copy ldap config plist files
+  # import_tasks: auth.yml
+  # become: yes
+  # become_method: sudo
+  #
+- name: set up home directories from chaos
+  import_tasks: setup_homedir.yml
   become: yes
   become_method: sudo

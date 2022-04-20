@@ -1,0 +1,37 @@
+#!/bin/bash
+
+onLogout() {
+        while [ $(ps -ax | grep rsync | grep -v grep | wc -l) -gt 0 ]; do
+                sleep 10s
+        done
+}
+
+# This hack helps cleanup when the user logouts
+trap 'onLogout' SIGINT SIGHUP SIGTERM
+
+# Don't use for atmosadmin, Guest, or root
+[ $USER == 'atmosadmin' -o $USER == 'Guest' -o ${#USER} -eq 0 ] && exit
+
+# If there's no home directory mounted from chaos none of this will work anyway.  This error should escalate somehow (email?)
+[ ! -d /home/$USER ] && ls -ld /home/$USER && sleep 3
+[ ! -d /home/$USER ] && osascript -e 'display notification "No storage for your account on AOS servers!" with title "Warning!"' && echo "The user ${USER} has no home directory on chaos. Please create one for them." | mail -s "Missing home directory for user" admin@atmos.ucla.edu && exit
+
+for d in Preferences Desktop Documents Downloads
+do
+        osascript -e 'display notification "Loading your '$d' files..." with title "Please Wait"'
+        [ -d /home/$USER/$d ] || mkdir -pv /home/$USER/$d
+        rsync --archive --update  /home/$USER/$d/ /Users/$USER/$d/
+        osascript -e 'display notification "Finished synchronizing '$d'!" with title "Please Wait"'
+done
+osascript -e 'display notification "Finished synchronizing all files!" with title "Done"'
+
+/usr/local/bin/fswatch /Users/$USER/{Desktop,Documents,Downloads,Preferences} | while read p
+do
+        if [ ! -e "$p" ]; then
+                rm -rv "${p/Users/home}"
+        elif [ -d "$p" ]; then
+                rsync --archive --update "$p" $(dirname "${p/Users/home}")/
+        else
+                rsync --archive --update "$p" "${p/Users/home}"
+        fi
+done

@@ -1,0 +1,35 @@
+- name: check for macsync
+  stat:
+    path: '/usr/local/bin/macsync'
+  register: macsync
+
+- name: copy macsync
+  copy:
+    src: macsync
+    dest: /usr/local/bin/macsync
+    mode: '0755'
+    owner: root
+    group: wheel
+  when: macsync.stat.exists == False
+
+- name: check for auto_chaos
+  stat:
+    path: '/etc/auto_chaos'
+  register: autochaos
+
+- name: copy auto_chaos
+  copy:
+    src: auto_chaos
+    dest: /etc/auto_chaos
+    mode: '0644'
+    owner: root
+    group: wheel
+  when: autochaos.stat.exists == False
+
+- name: configure launchctl
+  copy:
+    src: local.macsync.plist
+    dest: /Library/LaunchAgents/local.macsync.plist
+    mode: '0644'
+    owner: root
+    group: wheel
